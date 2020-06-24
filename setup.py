@@ -37,7 +37,7 @@ setup(name=module_info.app_name,
           'Development Status :: 4 - Beta',
 
           'Intended Audience :: Science/Research',
-          'Topic :: Scientific/Engineering'
+          'Topic :: Scientific/Engineering',
           'Topic :: Scientific/Engineering :: Chemistry',
 
           'License :: OSI Approved :: MIT License',
