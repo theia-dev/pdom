@@ -191,7 +191,7 @@
         ], [
           "search", "relative"
         ], [
-          "comment", "minima search absolute absolute, relative or relative_square"
+          "comment", "minima search absolute, relative or relative_square"
         ], [
           "comment", "does not apply to fit type toc"
         ], [

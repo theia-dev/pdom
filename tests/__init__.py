@@ -10,6 +10,8 @@ from numpy.testing import assert_array_almost_equal
 class BaseTestCase(unittest.TestCase):
     test_folder = Path(__file__).parent.absolute() / 'cases'
     long_tests = os.getenv('LONGTESTS', False)
+    if long_tests:
+        long_tests = int(long_tests)
 
     @classmethod
     def compare(cls, simulation, category, general_key, expected, sim_type):
@@ -57,7 +59,6 @@ class BaseTestCase(unittest.TestCase):
         for file_name in [f'{sim_type}-{prop}.txt' for prop in properties]:
             calc_path = simulation.cfg['OUT'] / file_name
             expected_path = expected_folder / file_name
-
             if 'unit' in file_name:
                 result_expected = expected_path.read_text()
                 result_calc = calc_path.read_text()

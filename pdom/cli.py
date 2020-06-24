@@ -54,7 +54,7 @@ def config_main():
     base_dir = Path(__file__).absolute().parent
     default_config_file = base_dir / 'data' / 'default_config.json'
 
-    default_config = json.load(default_config_file.open())['data']
+    default_config = json.loads(default_config_file.read_text())['data']
 
     unit_choice_comment = 'Allowed units in '
 
@@ -73,10 +73,10 @@ def config_main():
     config['SIMULATION']['id'] = str(c_id).replace(" ", '_')
 
     fit = ask_choice('Should data be fitted to the simulation?', [
-        ['fit', 'True'],
-        ['just simulation', 'False'],
+        ['fit', True],
+        ['just simulation', False],
     ])
-    config['SIMULATION']['fit'] = fit
+    config['SIMULATION']['fit'] = str(fit)
 
     if fit:
         question = 'What kind of experiment was conducted?'
@@ -130,7 +130,7 @@ def config_main():
     del config['SOLVER']
 
     q_kads = ('What is the adsorption constant?', 'SYSTEM', 'k_ads')
-    q_kdes = ('What is the desorption constant?', 'SYSTEM', 'k_ads')
+    q_kdes = ('What is the desorption constant?', 'SYSTEM', 'k_des')
     q_kreac = ('What is the reaction constant?', 'SYSTEM', 'k_reac')
     q_conc_solution = ('What is concentration in the solution?', 'SYSTEM', 'concentration_solution')
     q_cons_surface = ('What is concentration on the surface?', 'SYSTEM', 'concentration_surface')
@@ -168,7 +168,8 @@ def config_main():
                 ['k_ads', q_kads],
                 ['k_des', q_kdes]
             ])
-            config = ask_value_list(config, default_config, [q_k])
+
+            config = ask_value_list(config, default_config, [q_k, q_conc_solution])
             config['FIT']['type'] = "reac"
             config['SIMULATION']['fit'] = 'True'
         else:
@@ -189,20 +190,26 @@ def config_main():
             ['excess_bonds (slow)', 'excess_bonds']
         ])
         if fit:
+            del config['FIT']
             del config['MULTI_STRONG']
+            config.add_section('FIT')
+            config['FIT']['type'] = "toc"
             config['MULTI']['desorption_model'] = 'weak'
             is_equal = ask_choice('Is the system in equilibrium (dark)?', [
                 ['Yes', True],
                 ['No', False]
             ])
-            fit_kreac = ask_choice('Which parameter should be titted?', [
+            fit_kreac = ask_choice('Which parameter should be fitted?', [
                 ['k_reac', True],
                 ['beta_1', False]
             ])
+
             if fit_kreac:
-                des_quests = q_beta_1
+                des_quests = [q_beta_1]
+                del config['SYSTEM']['k_reac']
             else:
-                des_quests = q_kreac
+                des_quests = [q_kreac]
+                del config['MULTI_WEAK']
         else:
             is_equal = ask_choice('Is the system in equilibrium (dark)?', [
                 ['Yes', True],
@@ -222,14 +229,15 @@ def config_main():
                 ])
                 config['MULTI']['desorption_model'] = 'strong'
                 del config['MULTI_WEAK']
-                des_quests = list({q_e_1, q_e_0, q_alpha_0, q_alpha_1} - {strong_skip})
+                des_quests = list({q_kreac, q_e_1, q_e_0, q_alpha_0, q_alpha_1} - {strong_skip})
             else:
-                des_quests = [q_beta_1]
+                des_quests = [q_kreac, q_beta_1]
                 config['MULTI']['desorption_model'] = 'weak'
+                del config['MULTI_WEAK']['beta_0']
                 del config['MULTI_STRONG']
 
         if is_equal:
-            config = ask_value_list(config, default_config, [q_kads, q_kdes, q_kreac, q_conc_solution] + des_quests)
+            config = ask_value_list(config, default_config, [q_kads, q_kdes] + des_quests + [q_conc_solution])
             del config['SYSTEM']['concentration_surface']
         else:
             config = ask_value_list(config, default_config,
@@ -241,7 +249,7 @@ def config_main():
         else:
             out_file = Path(options.outfile+'.ini')
     else:
-        out_file = Path(f'config_{c_id}.ini')
+        out_file = Path(f'{c_id}.ini')
 
     config.write(out_file.open('w'))
 
@@ -249,7 +257,7 @@ def config_main():
 def ask_choice(question, options):
     while True:
         raw_input = None
-        print(question)
+        print('\n' + question)
         for n, option in enumerate(options):
             print(f'\t{n+1}: {option[0]}')
 
@@ -266,7 +274,7 @@ def ask_choice(question, options):
 
 
 def ask_value(question, allowed_units=None, convert_type=None):
-    print(question)
+    print('\n' + question)
     if allowed_units:
         print('  the allowed unis are: ' + ", ".join(allowed_units))
     if convert_type == 'int':
@@ -274,7 +282,7 @@ def ask_value(question, allowed_units=None, convert_type=None):
     elif convert_type == 'float':
         convert_type = float
     while True:
-        result = input('value: ').strip()
+        result = input('Value: ').strip()
         if allowed_units:
             if ' ' not in result:
                 print('Please separate the unit with a whitespace.')

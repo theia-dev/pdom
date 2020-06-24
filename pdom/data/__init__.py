@@ -537,7 +537,10 @@ class Parameter(object):
                                 raw_value = re.findall('([A-Z][a-z]?)([0-9]*)', raw_value)
                                 value = dict()
                                 for element, count in raw_value:
-                                    value[element] = int(count)
+                                    if count:
+                                        value[element] = int(count)
+                                    else:
+                                        value[element] = 1
                             else:
                                 value = raw_value
                         else:

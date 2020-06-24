@@ -1,0 +1,68 @@
+$ pdom.config
+ID of the system (avoid spaces): example_toc_fit
+
+Should data be fitted to the simulation?
+	1: fit
+	2: just simulation
+Your choice: 1
+
+What kind of experiment was conducted?
+	1: Adsorption-Desorption
+	2: Degradation
+	3: TOC
+Your choice: 3
+
+How can you identify the initial molecule?
+	1: chemID (https://pubchem.ncbi.nlm.nih.gov)
+	2: name
+Your choice: 1
+Molecule: 4139
+Found methylene blue cation (C16H18N3S+)
+
+What is the catalyst concentration?
+  the allowed unis are: g/m^3, g/L, mg/L
+Value: 2.5 g/L
+
+What is the catalyst surface area?
+  the allowed unis are: m^2/g, cm^2/g
+Value: 56 m^2/g
+
+What is the overall volume?
+  the allowed unis are: m^3, L, cm^3, mL
+Value: 1 L
+
+How long should the simulation be?
+  the allowed unis are: h, min, s
+Value: 6 h
+
+Which split model should be used?
+	1: incremental
+	2: fragmentation
+	3: excess_bonds (slow)
+Your choice: 1
+
+Is the system in equilibrium (dark)?
+	1: Yes
+	2: No
+Your choice: 1
+
+Which parameter should be fitted?
+	1: k_reac
+	2: beta_1
+Your choice: 2
+
+What is the adsorption constant?
+  the allowed unis are: m/s
+Value: 3.0E-9 m/s
+
+What is the desorption constant?
+  the allowed unis are: 1/s
+Value: 6.8E-3 1/s
+
+What is the reaction constant?
+  the allowed unis are: 1/s
+Value: 6.8E-2 1/s
+
+What is concentration in the solution?
+  the allowed unis are: molecule/m^3, molecule/L, mol/m^3, mmol/L, M, mol/L, mo/mc, g/L, mg/L, g/m^3
+Value: 0.069 mmol/L

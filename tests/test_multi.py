@@ -69,7 +69,7 @@ class TestMulti(BaseTestCase):
             [self.test_folder / 'toc_fit_incremental_beta_1', 'incremental'],
             [self.test_folder / 'toc_fit_fragmentation_beta_1', 'fragmentation'],
         ]
-        if self.long_tests:
+        if self.long_tests == 2:
             expected.append([self.test_folder / 'toc_fit_excess_bonds_beta_1', 'excess_bonds'])
 
         for exp_part in expected:

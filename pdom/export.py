@@ -166,7 +166,6 @@ def fit_single(cfg, result, result_raw):
 
     vol_scale, vol_unit = data.Parameter.scale_ten(np.max(base_y))
     t_scale, t_unit = data.Parameter.scale_time(np.max(fit_t))
-    label_scale, label_unit = data.Parameter.scale_ten(np.max(cfg['DATA']['initial_concentration'][1]) * vol_factor)
 
     f = plt.figure()
     ax1 = f.add_subplot(111)
@@ -178,31 +177,26 @@ def fit_single(cfg, result, result_raw):
         plt.plot(fit_t * t_scale, vol_scale * y, c='xkcd:darkblue')
         out_calc.append(list(vol_scale * y))
 
-    if cfg['DATA']['initial_concentration'].ndim == 2:
+    if cfg['DATA']['time_series'].ndim == 3:
         out_exp = [list(cfg['DATA']['time_series'][0][0] * t_scale)]
-        for n in range(cfg['DATA']['initial_concentration'].shape[1]):
-            l_value = cfg['DATA']['initial_concentration'][1][n] * vol_factor * label_scale
+        for n in range(cfg['DATA']['time_series'].shape[0]):
             ax1.plot(cfg['DATA']['time_series'][n][0] * t_scale,
                      vol_factor * vol_scale * (cfg['DATA']['time_series'][n][1]),
-                     'o', c=cmap(n / (cfg['DATA']['initial_concentration'].shape[1] - 1)),
-                     label=f'{l_value:4G}'.strip() + f' {label_unit}g/m$^3$')
+                     'o', c=cmap(n / (cfg['DATA']['time_series'].shape[0] - 1)),
+                     label=f'EXP {n:02}')
             out_exp.append(list(vol_factor * vol_scale * (
-                        cfg['DATA']['initial_concentration'][0][n] + cfg['DATA']['initial_concentration'][1][n] -
-                        cfg['DATA']['time_series'][n][1])))
+                    cfg['SYSTEM']['concentration_solution'] - cfg['DATA']['time_series'][n][1])))
     else:
         out_exp = [list(cfg['DATA']['time_series'][0] * t_scale)]
-        l_value = cfg['DATA']['initial_concentration'][1] * vol_factor * label_scale
         ax1.plot(cfg['DATA']['time_series'][0] * t_scale,
                  vol_factor * vol_scale * cfg['DATA']['time_series'][1],
                  'o', c=cmap(0),
-                 label=f'{l_value:4G}'.strip() + f' {label_unit}g/m$^3$')
+                 label='EXP 01')
         out_exp.append(list(vol_factor * vol_scale * (
-                cfg['DATA']['initial_concentration'][0] + cfg['DATA']['initial_concentration'][1] -
-                cfg['DATA']['time_series'][1])))
+                cfg['SYSTEM']['concentration_solution'] - cfg['DATA']['time_series'][1])))
 
     ax1.set_ylim(0, ax1.get_ylim()[1])
-    lg = ax1.legend(loc='center left', bbox_to_anchor=(1, 0.5), fancybox=True, ncol=1,
-                    title='initial\nconcentration')
+    lg = ax1.legend(loc='center left', bbox_to_anchor=(1, 0.5), fancybox=True, ncol=1)
     lg.get_frame().set_alpha(0.8)
     lg.get_frame().set_linewidth(0.5)
     f.tight_layout()

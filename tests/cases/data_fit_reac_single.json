@@ -11,10 +11,5 @@
       "unit": "mg/L",
       "type": "solution"
     }
-  ],
-  "initial_concentration": 4.9,
-  "initial_concentration_meta": {
-    "unit": "mg/L",
-    "type": "solution"
-  }
+  ]
 }

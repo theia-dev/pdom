@@ -1,7 +1,7 @@
 {
     "k_ads": "3.700E-08 m/s",
-    "k_des": "2.107E-02 1/s",
-    "k_reac": "1.996E-02 1/s",
-    "error": "3.914E-01",
-    "iterations": 19
+    "k_des": "-1.419E-02 1/s",
+    "k_reac": "2.459E-11 1/s",
+    "error": "5.835E+00",
+    "iterations": 5
 }

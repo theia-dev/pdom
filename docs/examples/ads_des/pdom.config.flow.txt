@@ -1,0 +1,52 @@
+$ pdom.config
+ID of the system (avoid spaces): example_ads_des
+
+Should data be fitted to the simulation?
+    1: fit
+    2: just simulation
+Your choice: 2
+
+What kind of simulation?
+    1: Adsorption-Desorption
+    2: Degradation
+    3: TOC
+Your choice: 1
+
+How can you identify the initial molecule?
+    1: chemID (https://pubchem.ncbi.nlm.nih.gov)
+    2: name
+Your choice: 1
+Molecule: 2764
+Found ciprofloxacin (C17H18FN3O3)
+
+What is the catalyst concentration?
+  the allowed unis are: g/m^3, g/L, mg/L
+Value: 1 g/L
+
+What is the catalyst surface area?
+  the allowed unis are: m^2/g, cm^2/g
+Value: 56 m^2/g
+
+What is the overall volume?
+  the allowed unis are: m^3, L, cm^3, mL
+Value: 0.3 L
+
+How long should the simulation be?
+  the allowed unis are: h, min, s
+Value: 15 min
+
+What is the adsorption constant?
+  the allowed unis are: m/s
+Value: 3.7E-8 m/s
+
+What is the desorption constant?
+  the allowed unis are: 1/s
+Value: 2.0E-2 1/s
+
+What is concentration in the solution?
+  the allowed unis are: molecule/m^3, molecule/L, mol/m^3, mmol/L, M, mol/L, mo/mc, g/L, mg/L, g/m^3
+Value: 0.1 mmol/L
+
+What is concentration on the surface?
+  the allowed unis are: molecule/m^2, mol/m^2, g/m^2, mg/m^2
+Value: 0 mol/m^2

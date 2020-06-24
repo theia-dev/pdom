@@ -3,6 +3,7 @@ import json
 from pathlib import Path
 from collections import defaultdict
 
+
 def make_config_details():
     default_config_file = Parameter.data_dir / 'default_config.json'
     default_config = json.loads(default_config_file.read_text())['data']

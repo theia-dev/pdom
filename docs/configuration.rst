@@ -21,9 +21,9 @@ Not all sections need to exist for each simulation.
 
 To create a new ``.ini`` file you can use the configuration tool of :mod:`pdom`.
 
-.. code-block:: bash
+.. code-block:: shell-session
 
-   pdom.config --out 'my_new.ini'
+   $ pdom.config --out 'my_new.ini'
 
 It will guide you through the process of collecting all relevant information.
 For the parameters of the initial molecule, it is helpful to look up its chemID in `PubChem <https://pubchem.ncbi.nlm.nih.gov>`_ before you start the process.
@@ -38,29 +38,30 @@ Experimental data
 
 To extract parameters, we need to compare experimental data to the simulation.
 This data needs to be provided in a structured way.
-For :mod:`pdom` we use a ``.json`` file.
+For :program:`pdom` we use a :file:`.json` file.
 Depending on the type of fit you want to carry out, the available futures differ slightly.
-As for the configurations you can use :mod:`pdom` to be guided through the process.
 
-.. code-block:: bash
+Adsorption-Desorption experiments
++++++++++++++++++++++++++++++++++
 
-   pdom.config --data --out 'my_new_dataset.json'
-
-
-Single species model
-++++++++++++++++++++
-
-Adsorption-Desorption experiments in the dark and straightforward degradation experiments are analyzed with the single-species model.
-For both types of experiments, it is common to have multiple repetitions that are based on the same setup.
-:mod:`pdom` supports, therefore, multiple time series in its fits.
+Adsorption-Desorption experiments in the dark are analyzed with the single-species model.
+As it is common to have multiple repetitions that are based on the same setup.
+:program:`pdom` supports multiple time series in its fits.
 The initial concentration and time steps can be different between the series.
-Below are examples of the two different experiment types.
+Below are examples of such a data file.
 
 .. literalinclude:: examples/data_ads_des_multi.json
    :language: json
-   :caption: ads_des_mutli.json
+   :caption: ads_des_multi.json
 
-.. literalinclude:: examples/data_fit_reac_multi.json
+
+Degradation experiments
++++++++++++++++++++++++
+
+For degradation experiments all time series have to start with the same initial concentration set in the :file:`.ini` file.
+This is the data file from the example :ref:`ref_ex_reac_fit`.
+
+.. literalinclude:: examples/fit_reac/example_reac_fit.json
    :language: json
    :caption: fit_reac_mutli.json
 
@@ -69,11 +70,13 @@ Multi species model
 
 To compare multi-species model simulations to experiments, TOC (or NPOC) can be used.
 In general, the fit to TOC data is the last step in the experiment analytics.
-This fit is limited to a single TOC curve, due to the usually higher experimental demanding process.
+This fit is limited to a single TOC curve, due to the usually demanding experimental process.
 If multiple TOC experiments are available, the results should be average before simulation.
-As just one initial concentration is needed, it is taken from the ``.ini`` file.
+As just one initial concentration is needed, it is taken from the :file:`.ini` file.
 
-.. literalinclude:: examples/data_fit_toc.json
+This is the data file from the example :ref:`ref_ex_toc_fit`.
+
+.. literalinclude:: examples/toc_fit/example_toc_fit.json
    :language: json
    :caption: fit_toc.json
 

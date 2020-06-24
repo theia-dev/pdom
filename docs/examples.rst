@@ -3,11 +3,10 @@
 Examples
 ========
 
-Adsorption - Desorption equilibrium
------------------------------------
+.. toctree::
+   :maxdepth: 1
 
-Degradation fit
----------------
-
-TOC fit
--------
+   examples_ads_des
+   examples_deg_fit
+   examples_toc_sim
+   examples_toc_fit

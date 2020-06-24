@@ -393,32 +393,28 @@ class Simulate(object):
             print(f"\tk_ads {result[2]:.3E} ")
             print(f"\tk_des {result[3]:.3E} ")
             print(f"\terror {result_raw.fun:.3E} ")
+            print(f"Results saved in {self.cfg['OUT']}")
         else:
             print('ERROR: Fit was not successful.')
             print(result_raw)
 
     def _fit_single_min(self, k_reac, final=False):
         sum_error = 0
-        k_ads = None
-        k_des = None
-        if 'k_ads' in self.cfg['SYSTEM']:
-            k_ads = self.cfg['SYSTEM']['k_ads']
-        if 'k_des' in self.cfg['SYSTEM']:
-            k_des = self.cfg['SYSTEM']['k_des']
-        if self.cfg['DATA']['initial_concentration'].ndim == 2:
-            N_vol_dark = self.cfg['DATA']['time_series'][:, 1, 0]
-            N_surf_dark = (np.sum(self.cfg['DATA']['initial_concentration'], axis=0) -
-                           self.cfg['DATA']['time_series'][:, 1, 0])
+        k_ads = self.cfg['SYSTEM'].get('k_ads')
+        k_des = self.cfg['SYSTEM'].get('k_des')
+
+        if self.cfg['DATA']['time_series'].ndim == 3:
+            N_vol_dark = np.average(self.cfg['DATA']['time_series'][:, 1, 0])
         else:
             N_vol_dark = self.cfg['DATA']['time_series'][1, 0]
-            N_surf_dark = self.cfg['DATA']['initial_concentration'][1] - self.cfg['DATA']['time_series'][1, 0]
+
+        N_surf_dark = self.cfg['SYSTEM']['concentration_solution'] - N_vol_dark
 
         if k_des is None:
             k_des = k_ads * np.average(
                 N_vol_dark / self.cfg['CATALYST']['volume'] * (
-                        self.cfg['CATALYST']['surface_total'] / N_surf_dark - self.cfg['MOLECULE']['molar_surface']
-                )
-            )
+                        self.cfg['CATALYST']['surface_total'] / N_surf_dark - self.cfg['MOLECULE']['molar_surface']))
+
         if k_ads is None:
             k_ads = k_des / np.average(
                 N_vol_dark / self.cfg['CATALYST']['volume'] * (
@@ -437,8 +433,8 @@ class Simulate(object):
             fit_y = np.interp(self.export_t, self.t, y)
             collect_results = [fit_y]
         else:
-            if self.cfg['DATA']['initial_concentration'].ndim == 2:
-                for n in range(self.cfg['DATA']['initial_concentration'].shape[1]):
+            if self.cfg['DATA']['time_series'].ndim == 3:
+                for n in range(self.cfg['DATA']['time_series'].shape[0]):
                     sum_error += self._calculate_error(self.cfg['DATA']['time_series'][n][0],
                                                        self.cfg['DATA']['time_series'][n][1],
                                                        self.t, y
@@ -466,6 +462,7 @@ class Simulate(object):
             print(f"\tk_des: {result[3]:.3E} 1/s")
             print(f"\tk_reac: {result[4]:.3E} 1/s")
             print(f"\terror: {result_raw.fun:.3E} ")
+            print(f"Results saved in {self.cfg['OUT']}")
         else:
             print('ERROR: Fit was not successful.')
             print(result_raw)
@@ -486,8 +483,6 @@ class Simulate(object):
         except KeyError:
             pass
         self.cfg = self.parameter.update_multi_k(self.cfg)
-
-
 
         if self.cfg['MULTI']['split_model'] == 'excess_bonds':
             N_0, k, c_shape = self._prepare_run('bond')
@@ -541,6 +536,7 @@ class Simulate(object):
         print(f"\tbeta_0: {self.cfg['MULTI_WEAK']['beta_0']:.3E} 1/s")
         print(f"\tbeta_1: {self.cfg['MULTI_WEAK']['beta_1']:.3E} 1/s")
         print(f"\terror: {error_sd:.3E} ")
+        print(f"Results saved in {self.cfg['OUT']}")
 
     def run(self):
         """ Runs either a simulation or performs a parameter
