@@ -1,0 +1,21 @@
+{
+  "time_series": [
+      [0, 10, 15, 30, 60, 120, 240], [0.000, 0.700, 0.996, 1.248, 1.396, 1.415, 1.415]
+  ],
+  "time_series_meta": [
+    {
+      "unit": "min",
+      "type": "t"
+    },
+    {
+      "unit": "mo/mc",
+      "factor": 1E-3,
+      "type": "surface"
+    }
+  ],
+  "initial_concentration": 35.0,
+  "initial_concentration_meta": {
+    "unit": "mg/L",
+    "type": "solution"
+  }
+}

@@ -1,0 +1,278 @@
+{
+  "data": {
+    "SIMULATION": {
+      "values": [
+        [
+          "id", "example_mb"
+        ], [
+          "multi", "True"
+        ], [
+          "comment", "MULTI section needed if True"
+        ], [
+          "fit", "False"
+        ], [
+          "comment", "FIT section needed if True"
+        ]
+      ],
+      "types": {
+        "multi": "bool",
+        "fit": "bool"
+      }
+    },
+    "TIME": {
+      "values": [
+        [
+          "comment", "Simulation time frame"
+        ], [
+          "duration", "5 h"
+        ], [
+          "steps", "5000"
+        ], [
+          "log", "True"
+        ], [
+          "comment", "Time distribution: True = logarithmic | False = linear"
+        ], [
+          "log_range", "8"
+        ], [
+          "comment", "Order of magnitudes to scan over if logarithmic distribution"
+        ]
+      ],
+      "types": {
+        "duration": "float",
+        "steps": "int",
+        "log": "bool",
+        "log_range": "int"
+      },
+      "units": {
+        "duration": [
+          "h", "min", "s"
+        ]
+      }
+    },
+    "SOLVER": {
+      "values": [
+        [
+          "comment", "Relative and absolute tolerances for the solver"
+        ], [
+          "rtol", "1e-9"
+        ], [
+          "atol", "1e-5"
+        ]
+      ],
+      "types": {
+        "rtol": "float",
+        "atol": "float"
+      }
+    },
+    "ENVIRONMENT": {
+      "values": [
+        [
+          "temperature", "20 C"
+        ]
+      ],
+      "types": {
+        "temperature": "float"
+      },
+      "units": {
+        "temperature": [
+          "K", "C"
+        ]
+      }
+    },
+    "CATALYST": {
+      "values": [
+        [
+          "concentration", "2.5 g/L"
+        ], [
+          "surface", "56e3 m^2/g"
+        ], [
+          "volume", "1e-3 m^3"
+        ]
+      ],
+      "types": {
+        "concentration": "float",
+        "surface": "float",
+        "volume": "float"
+      },
+      "units": {
+        "concentration": [
+          "g/m^3", "g/L", "mg/L"
+        ],
+        "surface": [
+          "m^2/g", "cm^2/g"
+        ],
+        "volume": [
+          "m^3", "L", "cm^3", "mL"
+        ]
+      }
+    },
+    "MOLECULE": {
+      "values": [
+        [
+          "name", "methylene blue"
+        ], [
+          "composition", "C16H18S1N3"
+        ], [
+          "excess_bonds", "14"
+        ], [
+          "molar_volume", "226.6 Ang^3/molecule"
+        ], [
+          "molar_surface", "99.7 Ang^2/molecule"
+        ], [
+          "diffusion_model", "s"
+        ], [
+          "comment", "s: Stokes (default), wc: Wilke-Chang, hm: Hayduk-Minhas"
+        ]
+      ],
+      "types": {
+        "composition": "chem_formula",
+        "molar_volume": "float",
+        "molar_surface": "float",
+        "excess_bonds": "int"
+      },
+      "units": {
+        "molar_volume": [
+          "Ang^3/molecule", "nm^3/molecule", "cm^3/mol"
+        ],
+        "molar_surface": [
+          "Ang^2/molecule", "nm^2/molecule", "m^2/molecule"
+        ]
+      }
+    },
+    "SYSTEM": {
+      "values": [
+        [
+          "concentration_solution", "10 mg/L"
+        ], [
+          "concentration_surface", "0"
+        ], [
+          "comment", "if concentration_surface is not set system is considered in equilibrium (dark)"
+        ], [
+          "k_ads", "1E-9 m/s"
+        ], [
+          "k_des", "1E-3 1/s"
+        ], [
+          "k_reac", "1E-2 1/s"
+        ]
+      ],
+      "types": {
+        "concentration_solution": "float",
+        "concentration_surface": "float",
+        "k_ads": "float",
+        "k_des": "float",
+        "k_reac": "float"
+      },
+      "units": {
+        "concentration_solution": [
+          "molecule/m^3", "molecule/L", "mol/m^3", "mmol/L", "M", "mol/L", "mo/mc", "g/L", "mg/L", "g/m^3"
+        ],
+        "concentration_surface": [
+          "molecule/m^2", "mol/m^2", "g/m^2", "mg/m^2"
+        ],
+        "k_ads": [
+          "m/s"
+        ],
+        "k_des": [
+          "1/s"
+        ],
+        "k_reac": [
+          "1/s"
+        ]
+      }
+    },
+    "FIT": {
+      "values": [
+        [
+          "comment", "This section is just active if fit is True"
+        ], [
+          "type", "dark"
+        ], [
+          "comment", "dark, reaction or toc"
+        ], [
+          "search", "relative"
+        ], [
+          "comment", "minima search absolute absolute, relative or relative_square"
+        ], [
+          "comment", "does not apply to fit type toc"
+        ], [
+          "max_step", "100"
+        ], [
+          "comment", "does not apply to fit type toc"
+        ]
+      ],
+      "types": {
+        "max_step": "int"
+      }
+    },
+    "MULTI": {
+      "values": [
+        [
+          "comment", "This section is just active if multi is True"
+        ], [
+          "split_model", "fragmentation"
+        ], [
+          "comment", "incremental, fragmentation or excess_bonds"
+        ], [
+          "desorption_model", "weak"
+        ], [
+          "comment", "weak or strong"
+        ]
+      ]
+    },
+    "MULTI_WEAK": {
+      "values": [
+        [
+          "comment", "This section is just active if desorption_model is set to weak. Just one value needed if k_des is set."
+        ], [
+          "beta_0", "-0.029 1/s"
+        ], [
+          "beta_1", "0.8  1/s"
+        ]
+      ],
+      "types": {
+        "beta_0": "float",
+        "beta_1": "float"
+      },
+      "units": {
+        "beta_0": [
+          "1/s"
+        ],
+        "beta_1": [
+          "1/s"
+        ]
+      }
+    },
+    "MULTI_STRONG": {
+      "values": [
+        [
+          "comment", "This section is just active if desorption_model is set to strong"
+        ], [
+          "E_0", "44.0 kJ/mol"
+        ], [
+          "E_1", "3.0 kJ/mol"
+        ], [
+          "alpha_0", "1.51e8 1/s"
+        ], [
+          "alpha_1", "0.412"
+        ]
+      ],
+      "types": {
+        "E_0": "float",
+        "E_1": "float",
+        "alpha_0": "float",
+        "alpha_1": "float"
+      },
+      "units": {
+        "alpha_0": [
+          "1/s"
+        ],
+        "E_0": [
+          "kJ/mol"
+        ],
+        "E_1": [
+          "kJ/mol"
+        ]
+      }
+    }
+  }
+}

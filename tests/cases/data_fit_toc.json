@@ -1,0 +1,15 @@
+{
+  "time_series": [
+    [0, 60, 120, 180, 360],
+    [12.6, 8.8, 6.78, 4.1, 2.77]
+  ],
+  "time_series_meta": [
+    {
+      "unit": "min",
+      "type": "t"
+    }, {
+      "unit": "mg/L",
+      "type": "toc"
+    }
+  ]
+}

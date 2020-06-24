@@ -1,0 +1,20 @@
+{
+  "time_series": [
+      [0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 25, 30],
+      [4.467, 3.775, 3.360, 3.016, 2.732, 2.491, 2.222, 2.025, 1.799, 1.630, 1.435, 1.054, 0.7460]
+  ],
+  "time_series_meta": [
+    {
+      "unit": "min",
+      "type": "t"
+    }, {
+      "unit": "mg/L",
+      "type": "solution"
+    }
+  ],
+  "initial_concentration": 4.9,
+  "initial_concentration_meta": {
+    "unit": "mg/L",
+    "type": "solution"
+  }
+}

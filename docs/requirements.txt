@@ -1,0 +1,4 @@
+Sphinx
+sphinx-argparse
+sphinxcontrib-bibtex
+sphinx-rtd-theme

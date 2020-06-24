@@ -1,0 +1,4 @@
+include pdom/bin/*
+include pdom/data/default_config.json
+include pdom/data/standard_atomic_weight.json
+include pdom/data/van_der_waals_radii.json
