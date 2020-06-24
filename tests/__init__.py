@@ -4,7 +4,7 @@ import shutil
 import unittest
 from pathlib import Path
 import numpy as np
-from numpy.testing import assert_array_almost_equal
+from numpy.testing import assert_allclose
 
 
 class BaseTestCase(unittest.TestCase):
@@ -67,6 +67,6 @@ class BaseTestCase(unittest.TestCase):
                 result_calc = np.loadtxt(calc_path, skiprows=1)
                 result_expected = np.loadtxt(expected_path, skiprows=1)
                 if 'fit_toc' in file_name:
-                    assert_array_almost_equal(result_calc, result_expected, decimal=2)
+                    assert_allclose(result_calc, result_expected, atol=0, rtol=1E-6)
                 else:
-                    assert_array_almost_equal(result_calc, result_expected)
+                    assert_allclose(result_calc, result_expected, atol=0, rtol=1E-3)
