@@ -12,7 +12,6 @@ class BaseTestCase(unittest.TestCase):
     long_tests = os.getenv('LONGTESTS', False)
     if long_tests:
         long_tests = int(long_tests)
-    long_tests = 2
 
     @classmethod
     def compare(cls, simulation, category, general_key, expected, sim_type):
@@ -44,9 +43,10 @@ class BaseTestCase(unittest.TestCase):
                 try:
                     assert (result[key] == expected[key])
                 except AssertionError:
-                    print(f"key: {key}\nresult: {result[key]} != expected: {expected[key]}")
+                    print('json match failed!')
+                    print(f"file: {expected_path.absolute()} \nkey: {key}")
+                    print(f"\nresult: {result[key]} != expected: {expected[key]}")
                     raise
-
 
     @classmethod
     def compare_files(cls, simulation, expected_folder, sim_type):
@@ -72,7 +72,9 @@ class BaseTestCase(unittest.TestCase):
             else:
                 result_calc = np.loadtxt(calc_path, skiprows=1)
                 result_expected = np.loadtxt(expected_path, skiprows=1)
-                if 'fit_toc' in file_name:
-                    assert_allclose(result_calc, result_expected, atol=0, rtol=1E-6)
-                else:
-                    assert_allclose(result_calc, result_expected, atol=0, rtol=1E-3)
+                try:
+                    assert_allclose(result_calc, result_expected, atol=0, rtol=1E-4)
+                except AssertionError:
+                    print('array match failed!')
+                    print(f'file: {expected_path.absolute}')
+                    raise
