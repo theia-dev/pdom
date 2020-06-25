@@ -76,5 +76,5 @@ class BaseTestCase(unittest.TestCase):
                     assert_allclose(result_calc, result_expected, atol=0, rtol=1E-4)
                 except AssertionError:
                     print('array match failed!')
-                    print(f'file: {expected_path.absolute}')
+                    print(f'file: {expected_path.absolute()}')
                     raise
