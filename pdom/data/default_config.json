@@ -12,36 +12,14 @@
           "fit", "False"
         ], [
           "comment", "FIT section needed if True"
+        ], [
+          "duration", "5 h"
         ]
       ],
       "types": {
         "multi": "bool",
-        "fit": "bool"
-      }
-    },
-    "TIME": {
-      "values": [
-        [
-          "comment", "Simulation time frame"
-        ], [
-          "duration", "5 h"
-        ], [
-          "steps", "5000"
-        ], [
-          "log", "True"
-        ], [
-          "comment", "Time distribution: True = logarithmic | False = linear"
-        ], [
-          "log_range", "8"
-        ], [
-          "comment", "Order of magnitudes to scan over if logarithmic distribution"
-        ]
-      ],
-      "types": {
-        "duration": "float",
-        "steps": "int",
-        "log": "bool",
-        "log_range": "int"
+        "fit": "bool",
+        "duration": "float"
       },
       "units": {
         "duration": [
@@ -52,7 +30,7 @@
     "SOLVER": {
       "values": [
         [
-          "comment", "Relative and absolute tolerances for the solver"
+          "comment", "Relative and absolute tolerances for the LSODA solver"
         ], [
           "rtol", "1e-9"
         ], [

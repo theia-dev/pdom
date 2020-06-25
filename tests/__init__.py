@@ -12,6 +12,7 @@ class BaseTestCase(unittest.TestCase):
     long_tests = os.getenv('LONGTESTS', False)
     if long_tests:
         long_tests = int(long_tests)
+    long_tests = 2
 
     @classmethod
     def compare(cls, simulation, category, general_key, expected, sim_type):
@@ -40,7 +41,12 @@ class BaseTestCase(unittest.TestCase):
         result = json.loads(result_path.read_text())
         for key in expected:
             if key in ['search_type', "k_ads", "k_des", "k_reac"]:
-                assert (result[key] == expected[key])
+                try:
+                    assert (result[key] == expected[key])
+                except AssertionError:
+                    print(f"key: {key}\nresult: {result[key]} != expected: {expected[key]}")
+                    raise
+
 
     @classmethod
     def compare_files(cls, simulation, expected_folder, sim_type):

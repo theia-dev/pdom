@@ -1,7 +1,7 @@
 from pathlib import Path
 
 import numpy as np
-from scipy.integrate import odeint
+from scipy.integrate import solve_ivp
 from scipy.optimize import curve_fit
 from scipy.optimize import minimize_scalar
 
@@ -44,7 +44,7 @@ class Simulate(object):
         #: time steps used for export - filled after :meth:`run`
         self.export_t = None
 
-    def rhs_single(self, N, t, k):
+    def rhs_single(self, t, N, k):
         """Right-hand site for single species model.
 
         Calculate the derivative for a given concentration profile.
@@ -85,7 +85,7 @@ class Simulate(object):
 
         return F
 
-    def rhs_multi(self, N_flat, t, k, N_shape):
+    def rhs_multi(self, t, N_flat, k, N_shape):
         """Right-hand site for multi species models *fragmentation* and *incremental*.
 
         Calculate the derivative for a given concentration profile.
@@ -148,7 +148,7 @@ class Simulate(object):
 
         return F.flatten()
 
-    def rhs_bonds(self, N_flat, t, k, N_shape):
+    def rhs_bonds(self, t, N_flat, k, N_shape):
         """Right-hand site for multi species model *excess_bonds*.
 
         Calculate the derivative for a given concentration profile.
@@ -221,8 +221,11 @@ class Simulate(object):
 
         return F.flatten()
 
-    def _calculate_error(self, org_t, org_y, calc_t, calc_y):
+    def _calculate_error_interp(self, org_t, org_y, calc_t, calc_y):
         fit_y = np.interp(org_t, calc_t, calc_y)
+        return self._calculate_error(org_y, fit_y)
+
+    def _calculate_error(self, org_y, fit_y):
         if self.cfg['FIT']['search'] == "absolute":
             return np.sum(np.abs((fit_y - org_y)))
         elif self.cfg['FIT']['search'] == "relative":
@@ -233,17 +236,11 @@ class Simulate(object):
             exit(f"FIT search type '{self.cfg['FIT']['search']}' does not exist.")
 
     def _prepare(self):
-        if self.cfg['TIME']['log']:
-            t = np.zeros(self.cfg['TIME']['steps'])
-            t[1:] = 10. ** np.linspace(np.log(self.cfg['TIME']['duration'] * 10 ** (-self.cfg['TIME']['log_range'])) / np.log(10.0),
-                                       np.log(self.cfg['TIME']['duration']) / np.log(10.0), self.cfg['TIME']['steps'] - 1)
-        else:
-            t = np.linspace(0, self.cfg['TIME']['duration'], self.cfg['TIME']['steps'])
-        self.t = t
+        self.t = [0, self.cfg['SIMULATION']['duration']]
         if self.resolution:
-            self.export_t = np.linspace(min(self.t), max(self.t), self.resolution)
+            self.export_t = np.linspace(0, self.cfg['SIMULATION']['duration'], self.resolution)
         else:
-            self.export_t = self.t
+            self.export_t = np.linspace(0, self.cfg['SIMULATION']['duration'], 250)
 
     def _prepare_run(self, run_type):
         N_0_vol = self.cfg['SYSTEM']['concentration_solution']
@@ -287,10 +284,11 @@ class Simulate(object):
     def _run_single(self):
         print("Start calculating single species model")
         N_0, k, c_shape = self._prepare_run('single')
-        y_vec = odeint(self.rhs_single, y0=N_0.flatten(), t=self.t, args=(k,),
-                       full_output=False, atol=self.cfg['SOLVER']['atol'], rtol=self.cfg['SOLVER']['rtol'])
-        c_vol = np.interp(self.export_t, self.t, y_vec[:, 1])
-        c_surf = np.interp(self.export_t, self.t, y_vec[:, 0])
+
+        result = solve_ivp(self.rhs_single, t_span=self.t, y0=N_0.flatten(), t_eval=self.export_t, args=(k,),
+                           method='LSODA', atol=self.cfg['SOLVER']['atol'], rtol=self.cfg['SOLVER']['rtol'])
+        c_vol, c_surf = result.y[1], result.y[0]
+
         export.single_species(self.cfg, self.export_t, c_surf, c_vol)
         print("Calculation finished!")
         print(f"Results saved in {self.cfg['OUT']}")
@@ -299,14 +297,11 @@ class Simulate(object):
         print("Start calculating multi species model")
         N_0, k, c_shape = self._prepare_run('multi')
 
-        y_vec = odeint(self.rhs_multi, y0=N_0.flatten(), t=self.t, args=(k, N_0.shape),
-                       full_output=False, atol=self.cfg['SOLVER']['atol'], rtol=self.cfg['SOLVER']['rtol'])
+        result = solve_ivp(self.rhs_multi, t_span=self.t, y0=N_0.flatten(),  t_eval=self.export_t, args=(k, N_0.shape),
+                           method='LSODA', atol=self.cfg['SOLVER']['atol'], rtol=self.cfg['SOLVER']['rtol'])
+        y_vec = result.y.T
         y_vec = y_vec.reshape(y_vec.shape[0], c_shape[0], c_shape[1])
-        c_vol = np.zeros((len(self.export_t), c_shape[0]))
-        c_surf = np.zeros((len(self.export_t), c_shape[0]))
-        for c in range(c_shape[0]):
-            c_vol[:, c] = np.interp(self.export_t, self.t, y_vec[:, c, 1])
-            c_surf[:, c] = np.interp(self.export_t, self.t, y_vec[:, c, 0])
+        c_vol, c_surf = y_vec[:, :, 1], y_vec[:, :, 0]
         export.multi_species(self.cfg, self.export_t, c_surf, c_vol)
         print("Calculation finished!")
         print(f"Results saved in {self.cfg['OUT']}")
@@ -315,15 +310,11 @@ class Simulate(object):
         print("Start calculating multi species bond model")
         N_0, k, c_shape = self._prepare_run('bond')
 
-        y_vec = odeint(self.rhs_bonds, y0=N_0.flatten(), t=self.t, args=(k, N_0.shape),
-                       full_output=False, atol=self.cfg['SOLVER']['atol'], rtol=self.cfg['SOLVER']['rtol'])
+        result = solve_ivp(self.rhs_bonds, t_span=self.t, y0=N_0.flatten(), t_eval=self.export_t, args=(k, N_0.shape),
+                           method='LSODA', atol=self.cfg['SOLVER']['atol'], rtol=self.cfg['SOLVER']['rtol'])
+        y_vec = result.y.T
         y_vec = y_vec.reshape(y_vec.shape[0], c_shape[0], c_shape[1], c_shape[2])
-        c_vol = np.zeros((len(self.export_t), c_shape[0], c_shape[1]))
-        c_surf = np.zeros((len(self.export_t), c_shape[0], c_shape[1]))
-        for c in range(c_shape[0]):
-            for b in range(c_shape[1]):
-                c_vol[:, c, b] = np.interp(self.export_t, self.t, y_vec[:, c, b, 1])
-                c_surf[:, c, b] = np.interp(self.export_t, self.t, y_vec[:, c, b, 0])
+        c_vol, c_surf = y_vec[:, :, :, 1], y_vec[:, :, :, 0]
         export.multi_species_bonds(self.cfg, self.export_t, c_surf, c_vol)
         print("Calculation finished!")
         print(f"Results saved in {self.cfg['OUT']}")
@@ -332,7 +323,9 @@ class Simulate(object):
         sum_error = 0
 
         if final:
+            t = self.export_t
             collect_results = []
+
         if self.cfg['DATA']['initial_concentration'].ndim == 2:
             N_vol_dark = self.cfg['DATA']['time_series'][:, 1, -1]
             N_surf_dark = np.sum(self.cfg['DATA']['initial_concentration'], axis=0)-self.cfg['DATA']['time_series'][:, 1, -1]
@@ -345,18 +338,16 @@ class Simulate(object):
             for n in range(self.cfg['DATA']['initial_concentration'].shape[1]):
                 N_0 = np.array((self.cfg['DATA']['initial_concentration'][0, n],
                                 self.cfg['DATA']['initial_concentration'][1, n]))
-                y_vec = odeint(self.rhs_single, y0=N_0.flatten(), t=self.t, args=(k,),
-                               full_output=False, atol=self.cfg['SOLVER']['atol'], rtol=self.cfg['SOLVER']['rtol'])
-                y = y_vec[:, 1]
+                if not final:
+                    t = self.cfg['DATA']['time_series'][n][0]
+                result = solve_ivp(self.rhs_single, t_span=self.t, y0=N_0.flatten(),
+                                   t_eval=t, args=(k,),
+                                   method='LSODA', atol=self.cfg['SOLVER']['atol'], rtol=self.cfg['SOLVER']['rtol'])
+                y = result.y[1]
                 if final:
-                    fit_y = np.interp(self.export_t, self.t, y)
-                    collect_results.append(fit_y)
+                    collect_results.append(y)
                 else:
-                    sum_error += self._calculate_error(self.cfg['DATA']['time_series'][n][0],
-                                                       self.cfg['DATA']['time_series'][n][1],
-                                                       self.t, y
-                                                       )
-
+                    sum_error += self._calculate_error(self.cfg['DATA']['time_series'][n][1], y)
         else:
             N_vol_dark = self.cfg['DATA']['time_series'][1, -1]
             N_surf_dark = self.cfg['DATA']['initial_concentration'][1] - self.cfg['DATA']['time_series'][1, -1]
@@ -367,17 +358,16 @@ class Simulate(object):
                 )
             )
             k = (k_ads, k_des, 0)
-            y_vec = odeint(self.rhs_single, y0=N_0.flatten(), t=self.t, args=(k,),
-                           full_output=False, atol=self.cfg['SOLVER']['atol'], rtol=self.cfg['SOLVER']['rtol'])
-            y = y_vec[:, 1]
+            if not final:
+                t = self.cfg['DATA']['time_series'][0]
+            result = solve_ivp(self.rhs_single, t_span=self.t, y0=N_0.flatten(), t_eval=t, args=(k,),
+                               method='LSODA', atol=self.cfg['SOLVER']['atol'], rtol=self.cfg['SOLVER']['rtol'])
+            y = result.y[1]
             if final:
-                fit_y = np.interp(self.export_t, self.t, y)
-                collect_results.append(fit_y)
+                collect_results.append(y)
             else:
-                sum_error = self._calculate_error(self.cfg['DATA']['time_series'][0],
-                                                  self.cfg['DATA']['time_series'][1],
-                                                  self.t, y
-                                                  )
+                sum_error = self._calculate_error(self.cfg['DATA']['time_series'][1], y)
+
         if final:
             return self.export_t, collect_results, k_ads, k_des
         else:
@@ -400,6 +390,7 @@ class Simulate(object):
 
     def _fit_single_min(self, k_reac, final=False):
         sum_error = 0
+
         k_ads = self.cfg['SYSTEM'].get('k_ads')
         k_des = self.cfg['SYSTEM'].get('k_des')
 
@@ -426,24 +417,25 @@ class Simulate(object):
 
         N_0 = np.array((np.average(N_surf_dark),
                         np.average(N_vol_dark)))
-        y_vec = odeint(self.rhs_single, y0=N_0.flatten(), t=self.t, args=(k,),
-                       full_output=False, atol=self.cfg['SOLVER']['atol'], rtol=self.cfg['SOLVER']['rtol'])
-        y = y_vec[:, 1]
+
+        result = solve_ivp(self.rhs_single, t_span=self.t, y0=N_0.flatten(), t_eval=self.export_t, args=(k,),
+                           method='LSODA', atol=self.cfg['SOLVER']['atol'], rtol=self.cfg['SOLVER']['rtol'])
+
+        y = result.y[1]
         if final:
-            fit_y = np.interp(self.export_t, self.t, y)
-            collect_results = [fit_y]
+            collect_results = [y]
         else:
             if self.cfg['DATA']['time_series'].ndim == 3:
                 for n in range(self.cfg['DATA']['time_series'].shape[0]):
-                    sum_error += self._calculate_error(self.cfg['DATA']['time_series'][n][0],
-                                                       self.cfg['DATA']['time_series'][n][1],
-                                                       self.t, y
-                                                       )
+                    sum_error += self._calculate_error_interp(self.cfg['DATA']['time_series'][n][0],
+                                                              self.cfg['DATA']['time_series'][n][1],
+                                                              self.export_t, y
+                                                              )
             else:
-                sum_error = self._calculate_error(self.cfg['DATA']['time_series'][0],
-                                                  self.cfg['DATA']['time_series'][1],
-                                                  self.t, y
-                                                  )
+                sum_error = self._calculate_error_interp(self.cfg['DATA']['time_series'][0],
+                                                         self.cfg['DATA']['time_series'][1],
+                                                         self.export_t, y
+                                                         )
 
         if final:
             return self.export_t, collect_results, k_ads, k_des, k_reac
@@ -452,7 +444,7 @@ class Simulate(object):
 
     def _fit_single(self):
         print("Start fitting to data from reaction experiment.")
-        result_raw = minimize_scalar(self._fit_single_min, bracket=(0, 1E-10), tol=1E-5,
+        result_raw = minimize_scalar(self._fit_single_min, bracket=(1E-8, 1E-4), tol=1E-5,
                                      options={"maxiter": self.cfg['FIT']['max_step']})
         if result_raw.success:
             result = self._fit_single_min(result_raw.x, final=True)
@@ -484,27 +476,29 @@ class Simulate(object):
             pass
         self.cfg = self.parameter.update_multi_k(self.cfg)
 
+        if full_resolution:
+            t = self.export_t
+
         if self.cfg['MULTI']['split_model'] == 'excess_bonds':
             N_0, k, c_shape = self._prepare_run('bond')
             N_0_vol = N_0[-1, -1, 1]
-            y_vec = odeint(self.rhs_bonds, y0=N_0.flatten(), t=self.t, args=(k, c_shape),
-                           full_output=False, atol=self.cfg['SOLVER']['atol'], rtol=self.cfg['SOLVER']['rtol'])
+
+            result = solve_ivp(self.rhs_bonds, t_span=self.t, y0=N_0.flatten(), t_eval=t, args=(k, N_0.shape),
+                               method='LSODA', atol=self.cfg['SOLVER']['atol'], rtol=self.cfg['SOLVER']['rtol'])
+            y_vec = result.y.T
             y_vec = y_vec.reshape(y_vec.shape[0], c_shape[0], c_shape[1], c_shape[2])
-            if full_resolution:
-                toc_sim = np.interp(self.export_t, self.t, y_vec[:, 0, 0, 0])
-            else:
-                toc_sim = np.interp(t, self.t, y_vec[:, 0, 0, 0])
+            toc_sim = y_vec[:, 0, 0, 0]
+
         else:
             N_0, k, c_shape = self._prepare_run('multi')
             N_0_vol = N_0[-1, 1]
-            y_vec = odeint(self.rhs_multi, y0=N_0.flatten(), t=self.t, args=(k, c_shape),
-                           full_output=False, atol=self.cfg['SOLVER']['atol'], rtol=self.cfg['SOLVER']['rtol'])
+
+            result = solve_ivp(self.rhs_multi, t_span=self.t, y0=N_0.flatten(), t_eval=t, args=(k, N_0.shape),
+                               method='LSODA', atol=self.cfg['SOLVER']['atol'], rtol=self.cfg['SOLVER']['rtol'])
+            y_vec = result.y.T
             y_vec = y_vec.reshape(y_vec.shape[0], c_shape[0], c_shape[1])
 
-            if full_resolution:
-                toc_sim = np.interp(self.export_t, self.t, y_vec[:, 0, 0])
-            else:
-                toc_sim = np.interp(t, self.t, y_vec[:, 0, 0])
+            toc_sim = y_vec[:, 0, 0]
 
         toc_0 = N_0_vol * c_shape[0]
         toc_sim = (toc_0 - toc_sim)/toc_0

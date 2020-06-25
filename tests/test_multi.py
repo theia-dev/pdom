@@ -56,7 +56,7 @@ class TestMulti(BaseTestCase):
             [self.test_folder / 'toc_fit_incremental_k_reac', 'incremental'],
             [self.test_folder / 'toc_fit_fragmentation_k_reac', 'fragmentation'],
         ]
-        if self.long_tests:
+        if self.long_tests == 2:
             expected.append([self.test_folder / 'toc_fit_excess_bonds_k_reac', 'excess_bonds'])
         for exp_part in expected:
             simulation = Simulate(self.test_folder / 'config_multi_fit_reac.ini',

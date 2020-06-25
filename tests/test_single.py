@@ -52,7 +52,8 @@ class TestSingle(BaseTestCase):
         ]
 
         simulation = Simulate(self.test_folder / 'config_fit_reac.ini',
-                              data_file=self.test_folder / 'data_fit_reac_single.json')
+                              data_file=self.test_folder / 'data_fit_reac_single.json',
+                              overwrites=[(('SYSTEM', 'concentration_solution'), '4.9 mg/L')])
         self.compare(simulation, 'SYSTEM', 'k_des', expected, 'fit_single')
 
     def test_fit_reac_single_ads(self):

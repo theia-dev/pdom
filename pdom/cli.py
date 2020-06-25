@@ -123,7 +123,7 @@ def config_main():
                             [('What is the catalyst concentration?', 'CATALYST', 'concentration'),
                              ('What is the catalyst surface area?', 'CATALYST', 'surface'),
                              ('What is the overall volume?', 'CATALYST', 'volume'),
-                             ('How long should the simulation be?', 'TIME', 'duration')]
+                             ('How long should the simulation be?', 'SIMULATION', 'duration')]
                             )
 
     # default should be fine for most cases
