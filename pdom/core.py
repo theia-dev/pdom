@@ -140,7 +140,7 @@ class Simulate(object):
         F[0, :] = 0.0
         if self.cfg['MULTI']['split_model'] == 'incremental':
             F[:-1, 0] = F[:-1, 0] + J_reac_out[1:] * self.cfg['CATALYST']['surface_total']
-            F[0, 0] = sum(J_reac_out[1:]) * self.cfg['CATALYST']['surface_total']
+            F[0, 0] = F[0, 0] + sum(J_reac_out[1:]) * self.cfg['CATALYST']['surface_total']
         elif self.cfg['MULTI']['split_model'] == 'fragmentation':
             F[:, 0] = F[:, 0] + J_reac_in[:] * self.cfg['CATALYST']['surface_total']
 
@@ -481,27 +481,26 @@ class Simulate(object):
 
         if self.cfg['MULTI']['split_model'] == 'excess_bonds':
             N_0, k, c_shape = self._prepare_run('bond')
-            N_0_vol = N_0[-1, -1, 1]
 
             result = solve_ivp(self.rhs_bonds, t_span=self.t, y0=N_0.flatten(), t_eval=t, args=(k, N_0.shape),
                                method='LSODA', atol=self.cfg['SOLVER']['atol'], rtol=self.cfg['SOLVER']['rtol'])
             y_vec = result.y.T
             y_vec = y_vec.reshape(y_vec.shape[0], c_shape[0], c_shape[1], c_shape[2])
-            toc_sim = y_vec[:, 0, 0, 0]
+
+            toc_sim = np.sum(y_vec[:, :, :, 1], axis=2)
+            toc_sim = np.sum(toc_sim * (np.arange(c_shape[0]) + 1), axis=1)
 
         else:
             N_0, k, c_shape = self._prepare_run('multi')
-            N_0_vol = N_0[-1, 1]
 
             result = solve_ivp(self.rhs_multi, t_span=self.t, y0=N_0.flatten(), t_eval=t, args=(k, N_0.shape),
                                method='LSODA', atol=self.cfg['SOLVER']['atol'], rtol=self.cfg['SOLVER']['rtol'])
             y_vec = result.y.T
             y_vec = y_vec.reshape(y_vec.shape[0], c_shape[0], c_shape[1])
 
-            toc_sim = y_vec[:, 0, 0]
+            toc_sim = np.sum(y_vec[:, :, 1] * (np.arange(c_shape[0]) + 1), axis=1)
 
-        toc_0 = N_0_vol * c_shape[0]
-        toc_sim = (toc_0 - toc_sim)/toc_0
+        toc_sim = toc_sim/toc_sim[0]
         return toc_sim
 
     def _fit_toc(self):

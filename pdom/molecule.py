@@ -1,12 +1,14 @@
 # -*- coding: utf-8 -*-
-from appdirs import user_cache_dir
 import urllib.request
 from pathlib import Path
 from textwrap import dedent
+
 import numpy as np
 import pubchempy as pcpug
-from skimage.draw import circle
-from skimage.morphology import disk, binary_erosion
+from appdirs import user_cache_dir
+from skimage import draw
+from skimage.morphology import binary_erosion
+from skimage.morphology import disk as morph_disk
 
 from pdom import Parameter
 from pdom import module_info
@@ -372,10 +374,10 @@ class Molecule(object):
         y_offset = min(cy) - max(cr) - probe_size
         img = np.zeros((x_scale, y_scale))
         for i in range(len(cx)):
-            rr, cc = circle(int(round((cx[i]-x_offset)*scale)), int(round((cy[i]-y_offset)*scale)),
-                            int(round((cr[i]+probe_size)*scale)))
+            rr, cc = draw.disk(center=(int(round((cx[i] - x_offset) * scale)), int(round((cy[i] - y_offset) * scale))),
+                               radius=int(round((cr[i]+probe_size)*scale)))
             img[rr, cc] = 1
-        probe = disk(int(round(probe_size*scale)))
+        probe = morph_disk(int(round(probe_size * scale)))
         img = binary_erosion(img, probe)
         surface = np.sum(img)/(scale**2)  # Ang^2
         self.properties['mol_surface'] = surface * 1e-20  # m^2

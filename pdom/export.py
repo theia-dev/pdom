@@ -412,15 +412,15 @@ def multi_species(cfg, t, N_surf, N_vol):
     f = plt.figure()
     ax1 = f.add_subplot(111)
     ax2 = ax1.twinx()
-    toc_0 = (N_vol[0, -1] + N_surf[0, -1]) * toc_factor * c_count
-    toc_scale, toc_unit = data.Parameter.scale_ten(toc_0)
+    toc_volume = np.sum(N_vol*(np.arange(c_count)+1), axis=1)
+    toc_scale, toc_unit = data.Parameter.scale_ten(toc_volume[0] * toc_factor)
     vol_scale, vol_unit = data.Parameter.scale_ten(np.max(N_vol * vol_factor[-1]))
     t_scale, t_unit = data.Parameter.scale_time(np.max(t))
     ax1.set_ylabel(f"volume concentration $C$ ({vol_unit}g/m$^3$)", color='xkcd:blue')
     ax2.set_ylabel(f"TOC $C$ ({toc_unit}g/m$^3$)", color='xkcd:orange')
     ax1.set_xlabel(f"time $t$ ({t_unit})")
     ax1.plot(t_scale * t, N_vol[:, -1] * vol_factor[-1] * vol_scale, c='xkcd:blue')
-    ax2.plot(t_scale * t, (toc_0 - N_surf[:, 0] * toc_factor) * toc_scale, c='xkcd:orange')
+    ax2.plot(t_scale * t, toc_volume * toc_factor * toc_scale, c='xkcd:orange')
     ax1.set_ylim(0, ax1.get_ylim()[1])
     ax2.set_ylim(0, ax2.get_ylim()[1])
 
