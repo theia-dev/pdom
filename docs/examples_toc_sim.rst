@@ -12,8 +12,8 @@ Three different split models are available in :program:`pdom`:
    * excess bonds
 
 To model the generalized split species, the size dependents of the desorption constant :math:`k_{\mathrm{ads}}` must be described.
-You can either choose the *strong* or *weak* dependents for your simulation.
-Due to the fewer variables, we chose, in this case, a *weak* dependents.
+You can either choose *strong* or *weak* dependents for your simulation.
+We chose a *weak* dependents in this example, due to the fewer needed parameters.
 
 As before the config file :download:`example_toc_sim.ini <examples/toc/example_toc_sim.ini>` can be generated with :program:`pdom.config`.
 Lines with require user input are highlighted in yellow.
@@ -67,12 +67,12 @@ You can alter the ``split_model`` key in the section ``MULTI`` to *incremental* 
     desorption_model = weak
     ...
 
-This would generate the following results:
+This generates the following results:
 
 .. figure:: examples/toc/incr/c_volume-toc.png
    :alt: example_toc_sim fragmentation plot
 
-   Development of the concentration in solution and the total organic carbon (TOC) using *incremental* split model.
+   Development of the concentration in solution and the total organic carbon (TOC) using the *incremental* split model.
 
 
 .. figure:: examples/toc/incr/volume_segments.png

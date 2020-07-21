@@ -33,7 +33,7 @@ Value: 0.4 L
 
 How long should the simulation be?
   the allowed unis are: h, min, s
-Value: 12 h
+Value: 4 h
 
 Which split model should be used?
 	1: incremental
@@ -64,10 +64,10 @@ What is the reaction constant?
   the allowed unis are: 1/s
 Value: 2.85E-1 1/s
 
-What is concentration in the solution?
-  the allowed unis are: molecule/m^3, molecule/L, mol/m^3, mmol/L, M, mol/L, mo/mc, g/L, mg/L, g/m^3
-Value: 4 mg/L
-
 What is the value of beta_1?
   the allowed unis are: 1/s
 Value: 0.2 1/s
+
+What is concentration in the solution?
+  the allowed unis are: molecule/m^3, molecule/L, mol/m^3, mmol/L, M, mol/L, mo/mc, g/L, mg/L, g/m^3
+Value: 4 mg/L

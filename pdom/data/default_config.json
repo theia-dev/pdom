@@ -194,6 +194,14 @@
           "desorption_model", "weak"
         ], [
           "comment", "weak or strong"
+        ], [
+          "TOC_estimation", "all"
+        ], [
+          "comment", "all or volume"
+        ], [
+          "segment_export", "mass"
+        ], [
+          "comment", "mass or molecule_count"
         ]
       ]
     },

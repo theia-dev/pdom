@@ -14,15 +14,23 @@ from . import data
 rcParams.update({'figure.figsize': (8, 6)})  # figure size in inches
 
 
-def _write_data_file(cfg, file_name, values, label):
+def _write_data_file(cfg, file_name, values, label, exp=False):
     out_path = cfg['OUT'] / file_name
     out_calc_text = " ".join(label) + "\n"
     for out_data in zip(*values):
-        out_calc_text += ' '.join([f'{v:.5F}' for v in list(out_data)]) + "\n"
+        if exp:
+            out_calc_text += ' '.join([f'{v:.5E}' for v in list(out_data)]) + "\n"
+        else:
+            out_calc_text += ' '.join([f'{v:.5F}' for v in list(out_data)]) + "\n"
     out_path.write_text(out_calc_text)
 
 
-def _get_factors(cfg, multi=False):
+def _get_factors(cfg, multi=False, segments=False):
+    if segments:
+        if cfg['MULTI']['segment_export'] != 'mass':
+            vol_factor = 1 / cfg['CATALYST']['volume']
+            surf_factor = 1 / cfg['CATALYST']['surface_total']
+            return vol_factor, surf_factor
     if multi:
         key = 'molar_weight_multi'
     else:
@@ -46,7 +54,7 @@ def fit_dark(cfg, result, result_raw):
         * space separated data file containing the fit ``fit_dark-values_calculated.txt``
         * space separated data file containing initial data points ``fit_dark-values_experiment.txt``
         * .json with the fitted parameters ``fit_dark.json``
-        * .txt files with corresponding units (latex formatted)
+        * .txt files with corresponding units (LaTeX formatted)
     """
     fit_t, fit_y, k_ads, k_des = result
     vol_factor, surf_factor = _get_factors(cfg)
@@ -139,7 +147,7 @@ def fit_single(cfg, result, result_raw):
         * space separated data file containing the fit ``fit_single-values_calculated.txt``
         * space separated data file containing initial data points ``fit_single-values_experiment.txt``
         * .json with the fitted parameters ``fit_single.json``
-        * .txt files with corresponding units (latex formatted)
+        * .txt files with corresponding units (LaTeX formatted)
     """
     cmap = plt.get_cmap('copper')
     fit_t, fit_y, k_ads, k_des, k_reac = result
@@ -233,7 +241,7 @@ def fit_toc(cfg, sd_error, t, fit):
         * space separated data file containing the fit | ``fit_toc-values_calculated.txt``
         * space separated data file containing initial data points | ``fit_toc-values_experiment.txt``
         * .json with the fitted parameters | ``fit_toc.json``
-        * .txt files with corresponding units (latex formatted)
+        * .txt files with corresponding units (LaTeX formatted)
     """
     exp_t = cfg['DATA']['time_series'][0]
     exp_data = cfg['DATA']['time_series'][1]
@@ -302,7 +310,7 @@ def single_species(cfg, t, N_surf, N_vol):
             * plot with concentration development in solution and on the surface ``single_species.pdf``
             * space separated data file containing the concentrations in solution ``single_species-values_volume.txt``
             * space separated data file containing the concentrations on the surface ``single_species-values_surface.txt``
-            * .txt files with corresponding units (latex formatted)
+            * .txt files with corresponding units (LaTeX formatted)
         """
 
     vol_factor, surf_factor = _get_factors(cfg)
@@ -345,7 +353,7 @@ def single_species(cfg, t, N_surf, N_vol):
 
 
 def multi_species(cfg, t, N_surf, N_vol):
-    """Export function for *incremantal* and *fragmentation* multi species model simulations.
+    """Export function for *incremental* and *fragmentation* multi species model simulations.
 
     :param cfg: simulation config
     :type cfg: dict
@@ -361,13 +369,14 @@ def multi_species(cfg, t, N_surf, N_vol):
         * plot of the segments in solution and on the surface ``volume_segments.pdf``, ``solution_segments.pdf``
         * space separated data file containing the concentrations in solution ``multi_species-values_volume.txt``
         * space separated data file containing the concentrations on the surface ``multi_species-values_surface.txt``
-        * .txt files with corresponding units (latex formatted)
+        * .txt files with corresponding units (LaTeX formatted)
     """
 
     c_count = len(N_surf[0])
     line_cm = cm.get_cmap('plasma_r', c_count - 2)
     norm = matplotlib.colors.Normalize(vmin=1.5, vmax=c_count - 0.5)
     vol_factor, surf_factor = _get_factors(cfg, multi=True)
+    vol_seg_factor, surf_seg_factor = _get_factors(cfg, multi=True, segments=True)
     toc_factor = (12.0107 / data.Parameter.avogadro) / cfg['CATALYST']['volume']
 
     # Volume segments
@@ -375,11 +384,17 @@ def multi_species(cfg, t, N_surf, N_vol):
     ax1 = f.add_subplot(111)
     vol_scale, vol_unit = data.Parameter.scale_ten(np.max(N_vol * vol_factor))
     t_scale, t_unit = data.Parameter.scale_time(np.max(t))
-    ax1.set_ylabel(f"volume concentration $C$ ({vol_unit}g/m$^3$)")
+    if cfg['MULTI']['segment_export'] == 'mass':
+        ax1.set_ylabel(f"volume concentration $C$ ({vol_unit}g/m$^3$)")
+    else:
+        ax1.set_ylabel(f"volume concentration $C$ (1/m$^3$)")
     ax1.set_xlabel(f"time $t$ ({t_unit})")
     ax1.set_yscale('log')
     for k in range(1, c_count-1):
-        ax1.plot(t_scale * t, N_vol[:, k] * vol_factor[k] * vol_scale, c=line_cm(norm(k + 1)))
+        if cfg['MULTI']['segment_export'] == 'mass':
+            ax1.plot(t_scale * t, N_vol[:, k] * vol_seg_factor[k] * vol_scale, c=line_cm(norm(k + 1)))
+        else:
+            ax1.plot(t_scale * t, N_vol[:, k] * vol_seg_factor, c=line_cm(norm(k + 1)))
     ax1.set_xlim(0, np.max(t_scale*t))
     calculated_ylim = ax1.get_ylim()
     ax1.set_ylim((np.max((calculated_ylim[0], 0.1 * vol_factor[-1] * vol_scale)), calculated_ylim[1]))
@@ -394,11 +409,18 @@ def multi_species(cfg, t, N_surf, N_vol):
     ax1 = f.add_subplot(111)
     surf_scale, surf_unit = data.Parameter.scale_ten(np.max(N_surf * surf_factor))
     t_scale, t_unit = data.Parameter.scale_time(np.max(t))
-    ax1.set_ylabel(f"surface concentration $C$ ({surf_unit}g/m$^2$)")
+    if cfg['MULTI']['segment_export'] == 'mass':
+        ax1.set_ylabel(f"surface concentration $C$ ({surf_unit}g/m$^2$)")
+    else:
+        ax1.set_ylabel(f"surface concentration $C$ (1/m$^2$)")
+
     ax1.set_xlabel(f"time $t$ ({t_unit})")
     ax1.set_yscale('log')
     for k in range(1, c_count-1):
-        ax1.plot(t_scale * t, N_surf[:, k] * surf_factor[k] * surf_scale, c=line_cm(norm(k + 1)))
+        if cfg['MULTI']['segment_export'] == 'mass':
+            ax1.plot(t_scale * t, N_surf[:, k] * surf_seg_factor[k] * surf_scale, c=line_cm(norm(k + 1)))
+        else:
+            ax1.plot(t_scale * t, N_surf[:, k] * surf_seg_factor, c=line_cm(norm(k + 1)))
     ax1.set_xlim(0, np.max(t_scale*t))
     calculated_ylim = ax1.get_ylim()
     ax1.set_ylim((np.max((calculated_ylim[0], 0.1 * surf_factor[-1] * surf_scale)), calculated_ylim[1]))
@@ -412,15 +434,18 @@ def multi_species(cfg, t, N_surf, N_vol):
     f = plt.figure()
     ax1 = f.add_subplot(111)
     ax2 = ax1.twinx()
-    toc_volume = np.sum(N_vol*(np.arange(c_count)+1), axis=1)
-    toc_scale, toc_unit = data.Parameter.scale_ten(toc_volume[0] * toc_factor)
+    toc = N_vol[:, 1:]
+    if cfg['MULTI']['TOC_estimation'] == 'all':
+        toc += N_surf[:, 1:]
+    toc = np.sum(toc * (np.arange(c_count-1) + 2), axis=1)
+    toc_scale, toc_unit = data.Parameter.scale_ten(toc[0] * toc_factor)
     vol_scale, vol_unit = data.Parameter.scale_ten(np.max(N_vol * vol_factor[-1]))
     t_scale, t_unit = data.Parameter.scale_time(np.max(t))
     ax1.set_ylabel(f"volume concentration $C$ ({vol_unit}g/m$^3$)", color='xkcd:blue')
     ax2.set_ylabel(f"TOC $C$ ({toc_unit}g/m$^3$)", color='xkcd:orange')
     ax1.set_xlabel(f"time $t$ ({t_unit})")
     ax1.plot(t_scale * t, N_vol[:, -1] * vol_factor[-1] * vol_scale, c='xkcd:blue')
-    ax2.plot(t_scale * t, toc_volume * toc_factor * toc_scale, c='xkcd:orange')
+    ax2.plot(t_scale * t, toc * toc_factor * toc_scale, c='xkcd:orange')
     ax1.set_ylim(0, ax1.get_ylim()[1])
     ax2.set_ylim(0, ax2.get_ylim()[1])
 
@@ -428,26 +453,48 @@ def multi_species(cfg, t, N_surf, N_vol):
     f.savefig(cfg['OUT'] / 'c_volume-toc.pdf')
     plt.close(f)
 
-    out_path = cfg['OUT'] / 'multi_species-unit_volume.txt'
-    out_path.write_text(f'{vol_unit}g/m$^3$')
-
-    out_path = cfg['OUT'] / 'multi_species-unit_surface.txt'
-    out_path.write_text(f'{surf_unit}g/m$^2$')
-
     out_path = cfg['OUT'] / 'multi_species-unit_time.txt'
     out_path.write_text(f'{t_unit}')
 
-    _write_data_file(cfg, 'multi_species-values_volume.txt',
-                     values=np.hstack((t_scale * t[:, np.newaxis], vol_scale * vol_factor * N_vol)).T,
-                     label=['t'] + [f'v{n+1:02}' for n in range(c_count)])
+    out_path = cfg['OUT'] / 'multi_species-unit_toc.txt'
+    out_path.write_text(f'{toc_unit}g/m^3')
 
-    _write_data_file(cfg, 'multi_species-values_surface.txt',
-                     values=np.hstack((t_scale * t[:, np.newaxis], surf_scale * surf_factor * N_surf)).T,
-                     label=['t'] + [f's{n + 1:02}' for n in range(c_count)])
+    _write_data_file(cfg, 'multi_species-values_toc.txt',
+                     values=[t_scale * t, toc * toc_factor * toc_scale], label=['t', 'toc'])
+
+    if cfg['MULTI']['segment_export'] == 'mass':
+        out_path = cfg['OUT'] / 'multi_species-unit_volume.txt'
+        out_path.write_text(f'{vol_unit}g/m$^3$')
+
+        out_path = cfg['OUT'] / 'multi_species-unit_surface.txt'
+        out_path.write_text(f'{surf_unit}g/m$^2$')
+
+        _write_data_file(cfg, 'multi_species-values_volume.txt',
+                         values=np.hstack((t_scale * t[:, np.newaxis], vol_scale * vol_factor * N_vol)).T,
+                         label=['t'] + [f'v{n+1:02}' for n in range(c_count)])
+
+        _write_data_file(cfg, 'multi_species-values_surface.txt',
+                         values=np.hstack((t_scale * t[:, np.newaxis], surf_scale * surf_factor * N_surf)).T,
+                         label=['t'] + [f's{n + 1:02}' for n in range(c_count)])
+
+    else:
+        out_path = cfg['OUT'] / 'multi_species-unit_volume.txt'
+        out_path.write_text('1/m$^3$')
+
+        out_path = cfg['OUT'] / 'multi_species-unit_surface.txt'
+        out_path.write_text('1/m$^2$')
+
+        _write_data_file(cfg, 'multi_species-values_volume.txt',
+                         values=np.hstack((t_scale * t[:, np.newaxis], vol_seg_factor * N_vol)).T,
+                         label=['t'] + [f'v{n + 1:02}' for n in range(c_count)], exp=True)
+
+        _write_data_file(cfg, 'multi_species-values_surface.txt',
+                         values=np.hstack((t_scale * t[:, np.newaxis], surf_seg_factor * N_surf)).T,
+                         label=['t'] + [f's{n + 1:02}' for n in range(c_count)], exp=True)
 
 
 def multi_species_bonds(cfg, t, N_surf_detail, N_vol_detail):
-    """Export function for *incremantal* and *fragmentation* multi species model simulations.
+    """Export function for *incremental* and *fragmentation* multi species model simulations.
 
             :param cfg: simulation config
             :type cfg: dict
@@ -466,13 +513,11 @@ def multi_species_bonds(cfg, t, N_surf_detail, N_vol_detail):
             """
     c_count = N_surf_detail.shape[1]
     b_count = N_surf_detail.shape[2]
-    line_cm = cm.get_cmap('plasma_r', c_count - 2)
-    norm = matplotlib.colors.Normalize(vmin=1.5, vmax=c_count - 0.5)
+    line_cm = cm.get_cmap('plasma_r', c_count - 1)
+    norm = matplotlib.colors.Normalize(vmin=1.5, vmax=c_count + 0.5)
 
     N_vol = np.sum(N_vol_detail, axis=2)
     N_surf = np.sum(N_surf_detail, axis=2)
-
-    multi_species(cfg, t, N_surf, N_vol)
 
     ab = ma.masked_array(np.zeros_like(N_vol))
     complete_detail = N_vol_detail + N_surf_detail
@@ -492,8 +537,8 @@ def multi_species_bonds(cfg, t, N_surf_detail, N_vol_detail):
     ax1.set_ylabel(f"average number of excess bonds")
     ax2.set_ylabel(f"overall excess bonds (%)")
     ax1.set_xlabel(f"time $t$ ({t_unit})")
-    for k in range(c_count):
-        ax1.plot(t_scale * t, average_excess_bonds[:, k], c=line_cm(norm(k + 1)))
+    for k in range(c_count-1):
+        ax1.plot(t_scale * t, average_excess_bonds[:, k+1], c=line_cm(norm(k + 2)))
 
     ax2.plot(t_scale * t, all_excess_bonds/np.max(all_excess_bonds)*100, c='black')
     ax1.set_xlim(0, np.max(t_scale * t))
@@ -509,3 +554,8 @@ def multi_species_bonds(cfg, t, N_surf_detail, N_vol_detail):
     _write_data_file(cfg, 'multi_species-excess_bonds.txt',
                      values=np.hstack((t_scale * t[:, np.newaxis], ma.filled(average_excess_bonds, -1))).T,
                      label=['t'] + [f'b{n+1:02}' for n in range(c_count)])
+    _write_data_file(cfg, 'multi_species-overall_excess_bonds.txt',
+                     values=[t_scale * t, all_excess_bonds/np.max(all_excess_bonds)*100],
+                     label=['t', 'oeb'])
+
+    multi_species(cfg, t, N_surf, N_vol)

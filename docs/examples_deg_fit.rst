@@ -27,9 +27,9 @@ With both files prepared :program:`pdom` can be started.
     Start fitting to data from reaction experiment.
     Fit finished after 24 iterations.
         k_ads: 3.700E-08 m/s
-        k_des: 1.000E-03 1/s
-        k_reac: 7.999E-03 1/s
-        error: 2.964E+00
+        k_des: 2.180E-02 1/s
+        k_reac: 1.452E-01 1/s
+        error: 3.136E+00
     Results saved in <your_working_dir>/example_reac_fit
 
 The result of the fit is stored under :file:`{<your_working_dir>}/example_reac_fit/fit_single.json`.

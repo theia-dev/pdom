@@ -1,5 +1,5 @@
 # pdom
-Simulation toolkit for Photocatalytic Degradation of Organic Molecules
+Simulation toolkit for the Photocatalytic Degradation of Organic Molecules
 
 
 [![PyPi](https://img.shields.io/pypi/v/pdom.svg?style=for-the-badge)](https://pypi.org/project/pdom/)

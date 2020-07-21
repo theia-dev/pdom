@@ -1,19 +1,13 @@
 #!/usr/bin/env python
 
 import argparse
-import configparser
-from pathlib import Path
-import json
-
-from pdom.molecule import Molecule
-from pdom import Simulate
 
 
 def get_parser_simulation():
     program = 'python -m pdom.run'
     description = 'A simple command line interface to run pdom.'
     parser = argparse.ArgumentParser(prog=program, description=description)
-    parser.add_argument('config', type=str,
+    parser.add_argument('config', type=str, nargs='+',
                         help='config file (.ini)')
     parser.add_argument('-d', '--data', type=str, default=None,
                         help='experimental data for fit (.json)')
@@ -26,9 +20,6 @@ def get_parser_config():
     program = 'python -m pdom.config'
     description = 'A command line interface to create pdom config files.'
     parser = argparse.ArgumentParser(prog=program, description=description)
-
-    parser.add_argument('-c', '--config', type=argparse.FileType(),
-                        help='a config file to modify')
     parser.add_argument('-s', '--structure', type=argparse.FileType(),
                         help='xyz molecule structure file')
     parser.add_argument('-o', '--outfile', type=str,
@@ -40,13 +31,21 @@ def simulation_main():
     parser = get_parser_simulation()
     options = parser.parse_args()
 
-    simulation = Simulate(options.config, out_folder=options.out, data_file=options.data)
-    simulation.run()
+    from pdom import Simulate
+
+    for cfg in options.config:
+        simulation = Simulate(cfg, out_folder=options.out, data_file=options.data)
+        simulation.run()
 
 
 def config_main():
     parser = get_parser_config()
     options = parser.parse_args()
+
+    from pdom.molecule import Molecule
+    from pathlib import Path
+    import configparser
+    import json
 
     config = configparser.ConfigParser(allow_no_value=True)
     config.optionxform = str
@@ -168,10 +167,13 @@ def config_main():
                 ['k_ads', q_kads],
                 ['k_des', q_kdes]
             ])
-
+            del config['SYSTEM']['k_ads']
+            del config['SYSTEM']['k_des']
+            del config['SYSTEM']['k_reac']
             config = ask_value_list(config, default_config, [q_k, q_conc_solution])
             config['FIT']['type'] = "reac"
             config['SIMULATION']['fit'] = 'True'
+
         else:
             is_equal = ask_choice('Is the system in equilibrium (dark)?', [
                 ['Yes', True],

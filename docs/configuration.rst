@@ -8,7 +8,7 @@ Simulation
 
 To run the simulation :mod:`pdom` needs a couple of information from the user.
 For :mod:`pdom`, this data is saved in an ``.ini`` file.
-This also ensures that the results of a simulation can always be accompanied by the parameters that created them.
+This ensures that the results of a simulation can always be accompanied by the parameters that created them.
 
 A simple config for :mod:`pdom` looks like this:
 
@@ -25,7 +25,7 @@ To create a new ``.ini`` file you can use the configuration tool of :mod:`pdom`.
 
    $ pdom.config --out 'my_new.ini'
 
-It will guide you through the process of collecting all relevant information.
+It will guide you through the process by collecting all relevant information.
 For the parameters of the initial molecule, it is helpful to look up its chemID in `PubChem <https://pubchem.ncbi.nlm.nih.gov>`_ before you start the process.
 This enables the automatic gathering of the molecule parameters from this database.
 
@@ -39,7 +39,7 @@ Experimental data
 To extract parameters, we need to compare experimental data to the simulation.
 This data needs to be provided in a structured way.
 For :program:`pdom` we use a :file:`.json` file.
-Depending on the type of fit you want to carry out, the available futures differ slightly.
+Depending on the type of fit you want to carry out, the available features differ slightly.
 
 Adsorption-Desorption experiments
 +++++++++++++++++++++++++++++++++

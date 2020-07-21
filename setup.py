@@ -14,7 +14,7 @@ version = module_info.version
 
 setup(name=module_info.app_name,
       version=version,
-      description='Simulation toolkit for Photocatalytic Degradation of Organic Molecules',
+      description='Simulation toolkit for the Photocatalytic Degradation of Organic Molecules',
       long_description=long_description,
       long_description_content_type='text/markdown',
       url=module_info.url,
@@ -29,12 +29,12 @@ setup(name=module_info.app_name,
                               'pdom.config=pdom.cli:config_main'],
       },
       install_requires=["appdirs", "numpy", "scipy", "matplotlib",
-                        "networkx", "Pillow", "PubChemPy", "scikit-image"],
+                        "Pillow", "PubChemPy", "scikit-image"],
       zip_safe=True,
       keywords=['photocatalysis', 'modeling'],
       python_requires='~=3.6',
       classifiers=[
-          'Development Status :: 4 - Beta',
+          'Development Status :: 5 - Production/Stable',
 
           'Intended Audience :: Science/Research',
           'Topic :: Scientific/Engineering',

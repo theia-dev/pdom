@@ -487,8 +487,10 @@ class Simulate(object):
             y_vec = result.y.T
             y_vec = y_vec.reshape(y_vec.shape[0], c_shape[0], c_shape[1], c_shape[2])
 
-            toc_sim = np.sum(y_vec[:, :, :, 1], axis=2)
-            toc_sim = np.sum(toc_sim * (np.arange(c_shape[0]) + 1), axis=1)
+            toc_sim = np.sum(y_vec[:, 1:, :, 1], axis=2)
+            if self.cfg['MULTI']['TOC_estimation'] == 'all':
+                toc_sim += np.sum(y_vec[:, 1:, :, 0], axis=2)
+            toc_sim = np.sum(toc_sim * (np.arange(c_shape[0]-1) + 2), axis=1)
 
         else:
             N_0, k, c_shape = self._prepare_run('multi')
@@ -498,7 +500,10 @@ class Simulate(object):
             y_vec = result.y.T
             y_vec = y_vec.reshape(y_vec.shape[0], c_shape[0], c_shape[1])
 
-            toc_sim = np.sum(y_vec[:, :, 1] * (np.arange(c_shape[0]) + 1), axis=1)
+            toc_sim = y_vec[:, 1:, 1]
+            if self.cfg['MULTI']['TOC_estimation'] == 'all':
+                toc_sim += y_vec[:, 1:, 0]
+            toc_sim = np.sum(toc_sim * (np.arange(c_shape[0]-1) + 2), axis=1)
 
         toc_sim = toc_sim/toc_sim[0]
         return toc_sim

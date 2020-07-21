@@ -3,4 +3,4 @@ __pycache__
 .idea
 /dist/
 /build/
-/docs_html/
+/docs_*/

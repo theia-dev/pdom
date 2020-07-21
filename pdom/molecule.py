@@ -31,13 +31,13 @@ class Molecule(object):
     :param properties:
         * ``chem_formula`` chemical formula e.g. 'C10H22'
         * ``chem_formdic`` chemical formula as dict
-        * ``mol_wight`` molecular weight in g/mol
+        * ``mol_weight`` molecular weight in g/mol
         * ``mol_volume`` molecular volume in cm^3/mol
         * ``mol_surface`` largest projected surface area m^2/molecule
         * ``excess_bonds`` number of bonds in excess of a simple carbon chain
         * ``structure_3d`` atom position list
     :type properties: dict
-    :param save: save data tu the user cache
+    :param save: save data to the user cache
     :type save: bool
     """
 
@@ -82,7 +82,7 @@ class Molecule(object):
             keydata = line.split(':')
             key = keydata[0].strip()
             data = keydata[1].strip()
-            if key in ['mol_surface', 'mol_wight', 'mol_volume']:
+            if key in ['mol_surface', 'mol_weight', 'mol_volume']:
                 properties[key] = float(data)
             if key in ['excess_bonds']:
                 properties[key] = int(data)
@@ -151,7 +151,7 @@ class Molecule(object):
 
         # Get all properties
         properties = dict()
-        properties['mol_wight'] = pcmol2d.molecular_weight
+        properties['mol_weight'] = pcmol2d.molecular_weight
 
         properties['chem_formula'] = pcmol2d.molecular_formula
         properties['structure_3d'] = []
@@ -273,7 +273,7 @@ class Molecule(object):
 
             properties
             chem_formula - Chemical formula e.g. 'C10H22'
-            mol_wight    - Molecular weight in g/mol
+            mol_weight    - Molecular weight in g/mol
             mol_volume   - Molecular volume in cm^3/mol
             mol_surface  - Largest projected surface area m^2/molecule
             excess_bonds - Number of bonds in excess of a simple carbon chain

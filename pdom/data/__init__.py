@@ -116,12 +116,12 @@ class Parameter(object):
         :param model: model abbreviation | "s" Stokes (default), "wc" Wilke-Chang, "hm" Hayduk-Minhas
         :type model: str, optional
 
-        :return: :math:`D` - diffusion constant [cm^2/s]
+        :return: :math:`D` - diffusion constant [m^2/s]
         :rtype: float
         """
 
         viscosity_water = cls.viscosity_water(temperature)  # mN/m^2 *s
-        molecule_radius = ((mol_volume / cls.avogadro) * 3.0 / (4.0 * np.pi)) ** (1.0 / 3.0) * 1e8
+        molecule_radius = ((mol_volume / cls.avogadro) * 3.0 / (4.0 * np.pi)) ** (1.0 / 3.0) * 1e8  # m
         if model not in ["wc", "s", "hm"]:
             print("Diffusion model %s not valid." % model)
             print("You can use:\n\t's' for Stokes\n\t'wc' for Wilke-Chang\n\t'hm' for Hayduk-Minhas")
@@ -504,17 +504,24 @@ class Parameter(object):
         clean_config = dict()
         for section in default_config:
             clean_config[section] = dict()
+            no_section = False
             for key, default_value in default_config[section]['values']:
                 if key != 'comment':
                     try:
                         raw_value = raw_config[section].get(key)
                     except configparser.Error:
                         raw_value = None
+                        no_section = True
                     except KeyError:
                         raw_value = None
                     if raw_value is None:
                         if section in ['ENVIRONMENT', 'SOLVER']:
                             raw_value = default_value
+                        elif section in ['MULTI']:
+                            if no_section:
+                                continue
+                            else:
+                                raw_value = default_value
                         else:
                             continue
 
